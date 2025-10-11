@@ -1,0 +1,42 @@
+[project]
+name = "stock-market-backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "black>=25.9.0",
+    "boto3>=1.40.48",
+    "django>=5.2.7",
+    "django-rest-framework>=0.1.0",
+    "djangorestframework-simplejwt>=5.5.1",
+    "drf-spectacular>=0.28.0",
+    "drf-yasg>=1.21.11",
+    "psycopg2-binary>=2.9.10",
+    "python-decouple>=3.8",
+    "ruff>=0.14.0",
+]
+
+[tool.ruff]
+
+line-length = 88
+target-version = "py311"
+
+
+[tool.ruff.lint]
+
+# Enable pyflakes (F), pycodestyle (E), isort (I)
+select = ["E", "F", "I"]
+ignore = ["F401", "E501"]  # Ignore unused imports everywhere
+
+
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
+
+
+[tool.black]
+max-line-length = 88 # Or your desired length
