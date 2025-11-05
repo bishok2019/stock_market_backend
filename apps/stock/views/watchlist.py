@@ -3,6 +3,13 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from base.views import (
+    CustomGenericCreateView,
+    CustomGenericListView,
+    CustomGenericRetrieveView,
+    CustomGenericUpdateView,
+)
+
 from ...authentication.models import UserProfile
 from ..models import HistoricalPrice, Stock
 from ..serializers import HistoricalPriceSerializer, StockListSerializer
@@ -42,7 +49,7 @@ class WatchlistAddOrRemoveApiView(APIView):
         )
 
 
-class WatchListApiView(generics.ListAPIView):
+class WatchListApiView(CustomGenericListView):
     serializer_class = StockListSerializer
 
     def get_queryset(self):

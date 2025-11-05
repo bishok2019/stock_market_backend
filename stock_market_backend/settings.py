@@ -15,6 +15,10 @@ from pathlib import Path
 
 from decouple import config
 
+from .rest import REST_FRAMEWORK_CONFIGS
+from .simple_jwt import SIMPLE_JWT_CONFIGS
+from .spectacular import SPECTACULAR_SETTINGS_CONFIGS
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,11 +27,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-gv^n#yi^2jkni)5&&95*kxe9a3p1pea^jcyr@2$j58(+&!z*p!"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config("DEBUG_")
+SECRET_KEY_CONFIG = config("SECRET_KEY_")
 
+SECRET_KEY = SECRET_KEY_CONFIG
 ALLOWED_HOSTS = ["*"]
 
 
@@ -148,61 +153,19 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    # "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
-}
+# REST_FRAMEWORK = {
+#     "DEFAULT_AUTHENTICATION_CLASSES": (
+#         "rest_framework_simplejwt.authentication.JWTAuthentication",
+#     ),
+#     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+#     # "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+# }
+
+REST_FRAMEWORK = REST_FRAMEWORK_CONFIGS
 
 AUTH_USER_MODEL = "authentication.CustomUser"
 
 
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Stock Market APIs",
-    "DESCRIPTION": "Srock Market Backend API Documentation",
-    "VERSION": "1.0",
-    "SERVE_INCLUDE_SCHEMA": False,
-    "SCHEMA_PATH_PREFIX_TRIM": False,
-    "SCHEMA_PATH_PREFIX": "/api/v1/",
-    # "POSTPROCESSING_HOOKS": [
-    #     "drf_spectacular.contrib.djangorestframework_camel_case.camelize_serializer_fields",
-    # ],
-    "COMPONENT_SPLIT_REQUEST": True,
-    "SWAGGER_UI_SETTINGS": {
-        "persistAuthorization": True,
-        "operationsSorter": "method",
-        "tagsSorter": "alpha",
-        # "tagsSorter": "(a, b) => a.localeCompare(b)",
-        "supportedSubmitMethods": [
-            "get",
-            "post",
-            "put",
-            "patch",
-            "delete",
-            "options",
-            "head",
-        ],
-        "docExpansion": "none",
-        "apisSorter": "alpha",
-        "showRequestHeaders": False,
-        "filter": True,  # Enable filtering
-        "deepLinking": True,
-        "requestContentType": "multipart/form-data",
-        "displayRequestDuration": True,
-        "showExtensions": True,
-        # "displayOperationId": True,
-    },
-}
+SIMPLE_JWT = SIMPLE_JWT_CONFIGS
 
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=3),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "ROTATE_REFRESH_TOKENS": False,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
-    "AUTH_HEADER_TYPES": ("Bearer",),
-}
+SPECTACULAR_SETTINGS = SPECTACULAR_SETTINGS_CONFIGS

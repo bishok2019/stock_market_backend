@@ -1,6 +1,8 @@
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 
+from base.views.generic_views import CustomGenericListView
+
 from ..models import Stock
 from ..serializers import (
     StockCreateSerializer,
@@ -10,7 +12,7 @@ from ..serializers import (
 )
 
 
-class StockListView(generics.ListAPIView):
+class StockListView(CustomGenericListView):
     serializer_class = StockListSerializer
     permission_classes = [AllowAny]
     queryset = Stock.objects.all()

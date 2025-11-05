@@ -1,0 +1,36 @@
+SPECTACULAR_SETTINGS_CONFIGS = {
+    "TITLE": "Stock Market APIs",
+    "DESCRIPTION": "Stock Market Backend API Documentation",
+    "VERSION": "1.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SCHEMA_PATH_PREFIX_TRIM": False,
+    "SCHEMA_PATH_PREFIX": "/api/v1/",
+    # "POSTPROCESSING_HOOKS": [
+    #     "drf_spectacular.contrib.djangorestframework_camel_case.camelize_serializer_fields",
+    # ],
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SWAGGER_UI_SETTINGS": {
+        "persistAuthorization": True,
+        "operationsSorter": "method",
+        "tagsSorter": "alpha",
+        # "tagsSorter": "(a, b) => a.localeCompare(b)",
+        "supportedSubmitMethods": [
+            "get",
+            "post",
+            "put",
+            "patch",
+            "delete",
+            "options",
+            "head",
+        ],
+        "docExpansion": "none",
+        "apisSorter": "alpha",
+        "showRequestHeaders": False,
+        "filter": True,  # Enable filtering
+        "deepLinking": True,
+        "requestContentType": "multipart/form-data",
+        "displayRequestDuration": True,
+        "showExtensions": True,
+        # "displayOperationId": True,
+    },
+}

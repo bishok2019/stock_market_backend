@@ -17,3 +17,4 @@ class UserProfile(models.Model):
         related_name="watchlisted_by_users",
         help_text="Stock watchlisted by user",
     )
+    stock = models.ManyToManyField("stock.Stock", blank=True, related_name="stock")
