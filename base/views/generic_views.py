@@ -84,8 +84,13 @@ class FilteringOrderingPaginationMixin:
         filters.OrderingFilter,
     ]
     search_fields = []
-    ordering_fields = ["-created_at", "created_at", "id", "-id"]
-    ordering = "-created_at"
+    ordering_fields = [
+        # "-created_at",
+        # "created_at",
+        "id",
+        "-id",
+    ]
+    ordering = "-id"
     filterset_fields = []
     pagination_class = CustomPagination
 

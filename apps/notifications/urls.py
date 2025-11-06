@@ -1,14 +1,19 @@
 from django.urls import include, path
 
-from .views import NotificationListAPIView, NotificationRetrieveAPIView
+from .views import (
+    SystemNotificationListAPIView,
+    SystemNotificationRetrieveAPIView,
+)
 
 notification_patterns = [
     path(
-        "retrieve/<int:pk>",
-        NotificationRetrieveAPIView.as_view(),
+        "system-retrieve/<int:pk>",
+        SystemNotificationRetrieveAPIView.as_view(),
         name="retrieve-notification",
     ),
-    path("list", NotificationListAPIView.as_view(), name="list-notification"),
+    path(
+        "system-list", SystemNotificationListAPIView.as_view(), name="list-notification"
+    ),
 ]
 urlpatterns = [
     path("notifications/", include(notification_patterns)),
