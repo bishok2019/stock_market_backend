@@ -170,3 +170,8 @@ AUTH_USER_MODEL = "authentication.CustomUser"
 SIMPLE_JWT = SIMPLE_JWT_CONFIGS
 
 SPECTACULAR_SETTINGS = SPECTACULAR_SETTINGS_CONFIGS
+
+# ==========================================
+# CELERY CONFIGURATION
+# ==========================================
+from .celery_settings import *

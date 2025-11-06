@@ -18,7 +18,8 @@ dependencies = [
     "python-decouple>=3.8",
     "ruff>=0.14.0",
     "django-filter==25.1",
-
+    "celery>=5.5.3",
+    "redis>=7.0.1",
 ]
 
 [tool.ruff]
