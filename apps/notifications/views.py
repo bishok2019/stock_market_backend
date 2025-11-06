@@ -45,6 +45,6 @@ class UserNotificationRetrieveAPIView(CustomGenericRetrieveView):
     queryset = Notification.objects.all()
     success_response_message = "Notification Retrieved Successfully"
 
-    def get_object(self):
+    def get_queryset(self):
         user = self.request.user
         return Notification.objects.filter(user=user)

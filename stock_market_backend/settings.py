@@ -50,12 +50,14 @@ LOCAL_APPS = [
 ]
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "channels",
 ]
 
 INSTALLED_APPS += LOCAL_APPS
@@ -175,3 +177,14 @@ SPECTACULAR_SETTINGS = SPECTACULAR_SETTINGS_CONFIGS
 # CELERY CONFIGURATION
 # ==========================================
 from .celery_settings import *
+
+# WebSOcket
+ASGI_APPLICATION = "stock_market_backend.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
