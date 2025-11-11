@@ -79,5 +79,5 @@ class NotificationService:
             user=user,
             notification_type=NotificationType.NEW_USER,
             title="Welcome to Stock Market!",
-            message=f"Welcome {user.username}!",
+            message=f"Welcome {user.email}!",
         )

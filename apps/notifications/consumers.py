@@ -7,35 +7,31 @@ from .models import Notification
 from .serializers import UserNotificationListSerializer
 
 
+class PrivateNotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        # Get user from scope (set by AuthMiddleware)
+        self.user = self.scope.get("user")
+
+        if self.user and self.user.is_authenticated:
+            await self.accept()
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "connection_success",
+                        "message": "Connected successfully",
+                    }
+                )
+            )
+        else:
+            await self.close()
+
+    async def disconnect(self, close_code):
+        if hasattr(self, "group_name"):
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+
 class NotificationConsumer(AsyncWebsocketConsumer):
-    # async def connect(self):
-    #     self.user = self.scope["user"]
-
-    #     # Check if user is authenticated
-    #     if self.user.is_anonymous:
-    #         await self.close()
-    #         return
-
-    #     # Create a unique group name for this user
-    #     self.group_name = f"notifications_{self.user.id}"
-
-    #     # Join notification group
-    #     await self.channel_layer.group_add(self.group_name, self.channel_name)
-
-    #     await self.accept()
-
-    #     # Send existing notifications on connect
-    #     notifications = await self.get_user_notifications()
-    #     await self.send(
-    #         text_data=json.dumps(
-    #             {
-    #                 "type": "initial_load",
-    #                 "notifications": notifications,
-    #                 "message": "Connected successfully",
-    #             }
-    #         )
-    #     )
-
+    # Connect without Authorization
     async def connect(self):
         # Accept connection without authentication
         await self.accept()
@@ -98,6 +94,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                             "type": "mark_read_response",
                             "success": success,
                             "notification_id": notification_id,
+                            "message": "Notification Marked as Read.",
                         }
                     )
                 )
@@ -110,6 +107,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                             {
                                 "type": "notification_list",
                                 "notifications": notifications,
+                                "message": "Notification fetched Successfully.",
                             }
                         )
                     )
@@ -143,11 +141,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         serializer = UserNotificationListSerializer(notifications, many=True)
         return serializer.data
 
-    # @database_sync_to_async
-    # def mark_notification_read(self, notification_id):
-    #     try:
-    #         notification = Notification.objects.get(id=notification_id, user=self.user)
-    #         notification.mark_as_read()
-    #         return True
-    #     except Notification.DoesNotExist:
-    #         return False
+    @database_sync_to_async
+    def mark_notification_read(self, notification_id):
+        try:
+            notification = Notification.objects.get(id=notification_id, user=self.user)
+            notification.mark_as_read()
+            return True
+        except Notification.DoesNotExist:
+            return False
