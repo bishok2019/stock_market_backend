@@ -6,7 +6,8 @@
     "ruff.format.enable": true,
     // Use Ruff as formatter for Python
     "[python]": {
-        "editor.defaultFormatter": "charliermarsh.ruff",
+        // "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.defaultFormatter": "ms-python.black-formatter",
         // "editor.defaultFormatter": "astral-sh.ruff",
         "editor.codeActionsOnSave": {
             "source.organizeImports": "explicit"

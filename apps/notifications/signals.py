@@ -14,6 +14,7 @@ from .serializers import UserNotificationListSerializer
 from .services import NotificationService
 
 logger = logging.getLogger(__name__)
+from django.db import transaction
 
 # Synchronous
 # @receiver(post_save, sender=Stock)
@@ -40,8 +41,8 @@ def create_new_stock_notification(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CustomUser)
 def creart_new_user_notification(sender, instance, created, **kwargs):
     if created:
-        print(instance.id)
-        print(instance.username)
+        # print(instance.id)
+        # print(instance.username)
         send_new_user_notification.delay(instance.id)
 
 
@@ -73,11 +74,15 @@ def broadcast_notification(sender, instance, action, **kwargs):
         serializer = UserNotificationListSerializer(instance)
 
         # Now instance.user.all() will actually have users!
-        for user in instance.user.all():
-            group_name = f"notifications_{user.id}"
-            logger.info(f"Sending to {group_name}")
+        def _broadcast():
+            for user in instance.user.all():
+                group_name = f"notifications_{user.id}"
+                logger.info(f"Sending to {group_name}")
 
-            async_to_sync(channel_layer.group_send)(
-                group_name,
-                {"type": "notification_message", "notification": serializer.data},
-            )
+                async_to_sync(channel_layer.group_send)(
+                    group_name,
+                    {"type": "notification_message", "notification": serializer.data},
+                )
+
+        # Enseure user receives notification only after all user related to notification is created.
+        transaction.on_commit(_broadcast)

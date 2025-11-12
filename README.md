@@ -92,3 +92,6 @@ python manage.py runserver
 ### 8. Access API Docs
 
 Visit [http://localhost:8000/docs/](http://localhost:8000/docs/) for Swagger UI.
+
+#WorkFlow of Notification
+create event → celery task → DB notification → m2m change → broadcast → client.
