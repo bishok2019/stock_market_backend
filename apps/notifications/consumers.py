@@ -5,7 +5,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from .models import Notification, UserNotification
-from .serializers import UserNotificationListSerializer
+from .serializers import SignalNotificationSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +176,7 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
         user_notification = UserNotification.objects.filter(
             user__id=user_id, is_read=False
         )
-        serializer = UserNotificationListSerializer(user_notification, many=True)
+        serializer = SignalNotificationSerializer(user_notification, many=True)
         return serializer.data
 
     @database_sync_to_async
@@ -324,7 +324,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         notifications = Notification.objects.filter(user__id=user_id).order_by("-id")[
             :50
         ]
-        serializer = UserNotificationListSerializer(notifications, many=True)
+        serializer = SignalNotificationSerializer(notifications, many=True)
         return serializer.data
 
     @database_sync_to_async
