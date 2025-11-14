@@ -63,6 +63,27 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
                         }
                     )
                 )
+
+            ######################################################################
+            elif action == "toggle_multiple_read_status":
+                notification_ids = data.get("notification_ids")
+                if not notification_ids or not isinstance(notification_ids, list):
+                    await self.send_error("notification_ids array is required")
+                    return
+
+                results = await self.toggle_multiple_notifications_read_status(
+                    notification_ids
+                )
+                await self.send(
+                    text_data=json.dumps(
+                        {
+                            "type": "toggle_multiple_read_response",
+                            "success": True,
+                            "results": results,
+                            "message": f"{len(results)} notification(s) toggled",
+                        }
+                    )
+                )
             ######################################################################
             elif action == "toggle_read_status":
                 notification_id = data.get("notification_id")
@@ -130,6 +151,24 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
                 }
             )
         )
+
+    @database_sync_to_async
+    def toggle_multiple_notifications_read_status(self, notification_ids):
+        """Toggle read status for multiple notifications"""
+        try:
+            notifications = Notification.objects.filter(
+                id__in=notification_ids, user=self.user_id
+            )
+
+            results = []
+            for notification in notifications:
+                notification.is_read = not notification.is_read
+                notification.save()
+                results.append({"id": notification.id, "is_read": notification.is_read})
+
+            return results
+        except Exception:
+            return []
 
     @database_sync_to_async
     def get_private_users_notification(self, user_id):
