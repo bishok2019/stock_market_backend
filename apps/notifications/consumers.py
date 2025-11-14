@@ -4,7 +4,7 @@ import logging
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from .models import Notification
+from .models import Notification, UserNotification
 from .serializers import UserNotificationListSerializer
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,8 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
                         {
                             "type": "mark_read_response",
                             "success": success,
-                            "notification_id": (
+                            "notification_id": notification_id,
+                            "message": (
                                 "Notification marked as read"
                                 if success
                                 else "Failed to mark notification"
@@ -156,12 +157,12 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
     def toggle_multiple_notifications_read_status(self, notification_ids):
         """Toggle read status for multiple notifications"""
         try:
-            notifications = Notification.objects.filter(
+            user_notifications = UserNotification.objects.filter(
                 id__in=notification_ids, user=self.user_id
             )
 
             results = []
-            for notification in notifications:
+            for notification in user_notifications:
                 notification.is_read = not notification.is_read
                 notification.save()
                 results.append({"id": notification.id, "is_read": notification.is_read})
@@ -172,37 +173,39 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_private_users_notification(self, user_id):
-        notification = Notification.objects.filter(user__id=user_id, is_read=False)
-        serializer = UserNotificationListSerializer(notification, many=True)
+        user_notification = UserNotification.objects.filter(
+            user__id=user_id, is_read=False
+        )
+        serializer = UserNotificationListSerializer(user_notification, many=True)
         return serializer.data
 
     @database_sync_to_async
     def mark_private_notification_as_read(self, notification_id):
         try:
-            notification = Notification.objects.filter(
+            user_notification = UserNotification.objects.filter(
                 id=notification_id, user=self.user_id
             ).first()
 
-            notification.mark_as_read()
+            user_notification.mark_as_read()
             return True
-        except Notification.DoesNotExist:
+        except UserNotification.DoesNotExist:
             return False
 
     @database_sync_to_async
     def toggle_notification_read_status(self, notification_id):
         try:
-            notification = Notification.objects.filter(
+            user_notification = UserNotification.objects.filter(
                 id=notification_id, user=self.user_id
             ).first()
 
-            if not notification:
+            if not user_notification:
                 return None
 
             # Toggle the read status
-            notification.is_read = not notification.is_read
-            notification.save()
+            user_notification.is_read = not user_notification.is_read
+            user_notification.save()
 
-            return (notification.is_read, True)
+            return (user_notification.is_read, True)
         except Exception:
             return None
 

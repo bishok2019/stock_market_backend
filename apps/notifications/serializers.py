@@ -2,19 +2,19 @@ from rest_framework import serializers
 
 from apps.stock.serializers import StockListSerializer, StockRetrieveSerializer
 
-from .models import Notification
+from .models import Notification, UserNotification
 
 
 class UserNotificationListSerializer(serializers.ModelSerializer):
     # stock = StockListSerializer()
 
     class Meta:
-        model = Notification
-        # fields = "__all__"
-        exclude = [
-            "user",
-            "stock",
-        ]
+        model = UserNotification
+        fields = "__all__"
+        # exclude = [
+        #     "user",
+        #     "stock",
+        # ]
 
 
 class UserNotificationRetrieveSerializer(serializers.ModelSerializer):
