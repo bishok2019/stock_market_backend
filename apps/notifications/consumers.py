@@ -63,6 +63,37 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
                         }
                     )
                 )
+            ######################################################################
+            elif action == "toggle_read_status":
+                notification_id = data.get("notification_id")
+                if not notification_id:
+                    await self.send_error("notification id is required")
+                    return
+                else:
+                    result = await self.toggle_notification_read_status(notification_id)
+
+                if result:
+                    is_read, success = result
+                    await self.send(
+                        text_data=json.dumps(
+                            {
+                                "type": "toggle_read_response",
+                                "success": success,
+                                "notification_id": notification_id,
+                                "is_read": is_read,
+                                "message": (
+                                    f"Notification marked as {'read' if is_read else 'unread'}"
+                                    if success
+                                    else "Failed to toggle notification"
+                                ),
+                            }
+                        )
+                    )
+                else:
+                    await self.send_error("Notification Not Found")
+
+            ###########################################################################################
+
             elif action == "get_notifications":
                 # Only get authenticated user's notifications
                 notifications = await self.get_private_users_notification(self.user.id)
@@ -102,7 +133,7 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_private_users_notification(self, user_id):
-        notification = Notification.objects.filter(user__id=user_id)
+        notification = Notification.objects.filter(user__id=user_id, is_read=False)
         serializer = UserNotificationListSerializer(notification, many=True)
         return serializer.data
 
@@ -117,6 +148,24 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
             return True
         except Notification.DoesNotExist:
             return False
+
+    @database_sync_to_async
+    def toggle_notification_read_status(self, notification_id):
+        try:
+            notification = Notification.objects.filter(
+                id=notification_id, user=self.user_id
+            ).first()
+
+            if not notification:
+                return None
+
+            # Toggle the read status
+            notification.is_read = not notification.is_read
+            notification.save()
+
+            return (notification.is_read, True)
+        except Exception:
+            return None
 
 
 class NotificationConsumer(AsyncWebsocketConsumer):
@@ -237,7 +286,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         return serializer.data
 
     @database_sync_to_async
-    def mark_notification_read(self, notification_id, user_id):
+    def mark_notification_as_read(self, notification_id, user_id):
         try:
             notification = Notification.objects.get(
                 id=notification_id, user__id=user_id
