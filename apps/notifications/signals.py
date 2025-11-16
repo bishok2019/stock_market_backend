@@ -76,7 +76,9 @@ def broadcast_notification(sender, instance, action, **kwargs):
         # Now instance.user.all() will actually have users!
         def _broadcast():
             for user in instance.user.all():
-                group_name = f"notifications_for_{user.id}" # group name must match to consumer
+                group_name = (
+                    f"notifications_for_{user.id}"  # group name must match to consumer
+                )
                 logger.info(f"Sending to {group_name}")
 
                 async_to_sync(channel_layer.group_send)(
