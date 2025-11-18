@@ -10,11 +10,11 @@ class UserNotificationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = "__all__"
-        # exclude = [
-        #     "user",
-        #     "stock",
-        # ]
+        # fields = "__all__"
+        exclude = [
+            "user",
+            "stock",
+        ]
 
 
 class UserNotificationRetrieveSerializer(serializers.ModelSerializer):
@@ -58,4 +58,5 @@ class SignalNotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserNotification
-        fields = "__all__"
+        # fields = "__all__"
+        exclude = ["user"]

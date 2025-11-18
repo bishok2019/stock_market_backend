@@ -72,7 +72,7 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
                     await self.send_error("notification_ids array is required")
                     return
 
-                results = await self.toggle_multiple_notifications_read_status(
+                results = await self.mark_multiple_notifications_read_status(
                     notification_ids
                 )
                 await self.send(
@@ -86,33 +86,33 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
                     )
                 )
             ######################################################################
-            elif action == "toggle_read_status":
-                notification_id = data.get("notification_id")
-                if not notification_id:
-                    await self.send_error("notification id is required")
-                    return
-                else:
-                    result = await self.toggle_notification_read_status(notification_id)
+            # elif action == "toggle_read_status":
+            #     notification_id = data.get("notification_id")
+            #     if not notification_id:
+            #         await self.send_error("notification id is required")
+            #         return
+            #     else:
+            #         result = await self.toggle_notification_read_status(notification_id)
 
-                if result:
-                    is_read, success = result
-                    await self.send(
-                        text_data=json.dumps(
-                            {
-                                "type": "toggle_read_response",
-                                "success": success,
-                                "notification_id": notification_id,
-                                "is_read": is_read,
-                                "message": (
-                                    f"Notification marked as {'read' if is_read else 'unread'}"
-                                    if success
-                                    else "Failed to toggle notification"
-                                ),
-                            }
-                        )
-                    )
-                else:
-                    await self.send_error("Notification Not Found")
+            #     if result:
+            #         is_read, success = result
+            #         await self.send(
+            #             text_data=json.dumps(
+            #                 {
+            #                     "type": "toggle_read_response",
+            #                     "success": success,
+            #                     "notification_id": notification_id,
+            #                     "is_read": is_read,
+            #                     "message": (
+            #                         f"Notification marked as {'read' if is_read else 'unread'}"
+            #                         if success
+            #                         else "Failed to toggle notification"
+            #                     ),
+            #                 }
+            #             )
+            #         )
+            #     else:
+            #         await self.send_error("Notification Not Found")
 
             ###########################################################################################
 
@@ -154,7 +154,7 @@ class PrivateNotificationConsumer(AsyncWebsocketConsumer):
         )
 
     @database_sync_to_async
-    def toggle_multiple_notifications_read_status(self, notification_ids):
+    def mark_multiple_notifications_read_status(self, notification_ids):
         """Toggle read status for multiple notifications"""
         try:
             user_notifications = UserNotification.objects.filter(
@@ -265,7 +265,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                             }
                         )
                     )
-            elif action == "mark_read":
+            elif action == "toggle_read_status":
                 notification_id = data.get("notification_id")
                 user_id = data.get("user_id")
 
@@ -273,7 +273,28 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                     await self.send_error("notification_id and user_id are required")
                     return
 
-                success = await self.mark_notification_read(notification_id, user_id)
+                success = await self.mark_notification_as_read(notification_id, user_id)
+                await self.send(
+                    text_data=json.dumps(
+                        {
+                            "type": "mark_read_response",
+                            "success": success,
+                            "notification_id": notification_id,
+                            "message": "Notification Marked as Read.",
+                        }
+                    )
+                )
+            elif action == "toggle_multiple_read_status":
+                notification_id = data.get("notification_id")
+                user_id = data.get("user_id")
+
+                if not notification_id or not user_id:
+                    await self.send_error("notification_id and user_id are required")
+                    return
+
+                success = await self.mark_multiple_notification_as_read(
+                    notification_id, user_id
+                )
                 await self.send(
                     text_data=json.dumps(
                         {
@@ -307,6 +328,10 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 )
             )
 
+    async def send_error(self, message):
+        "Helper method to send error messages"
+        await self.send(text_data=json.dumps({"type": "error", "message": message}))
+
     async def notification_message(self, event):
         """Receive notification from group and send to WebSocket"""
         await self.send(
@@ -321,19 +346,41 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_user_notifications(self, user_id):
-        notifications = Notification.objects.filter(user__id=user_id).order_by("-id")[
-            :50
-        ]
+        notifications = UserNotification.objects.filter(
+            user__id=user_id, is_read=False
+        ).order_by("-id")[:50]
         serializer = SignalNotificationSerializer(notifications, many=True)
         return serializer.data
 
     @database_sync_to_async
     def mark_notification_as_read(self, notification_id, user_id):
         try:
-            notification = Notification.objects.get(
+            notification = UserNotification.objects.get(
                 id=notification_id, user__id=user_id
             )
-            notification.mark_as_read(notification_id, user_id)
+            notification.toggle_read_status()
             return True
-        except Notification.DoesNotExist:
+        except UserNotification.DoesNotExist:
+            return False
+
+    @database_sync_to_async
+    def mark_multiple_notification_as_read(self, notification_id: list, user_id):
+        try:
+            notifications = UserNotification.objects.filter(
+                id__in=notification_id, user__id=user_id
+            )
+            results = []
+            if not notifications:
+                return False
+
+            for notification in notifications:
+                notification.toggle_read_status()
+                # notifications.is_read = not notifications.is_read
+                # notifications.save()
+                results.append(
+                    {"id": notification.id, "read_status": notification.is_read}
+                )
+            return results
+
+        except UserNotification.DoesNotExist:
             return False

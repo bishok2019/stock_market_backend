@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class NotificationType(models.TextChoices):
@@ -56,7 +57,6 @@ class UserNotification(models.Model):
 
     def mark_as_read(self):
         """Mark notification as read"""
-        from django.utils import timezone
 
         self.is_read = True
         self.read_at = timezone.now()
